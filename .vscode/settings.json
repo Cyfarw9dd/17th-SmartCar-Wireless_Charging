@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "seekfree_18tft.h": "c",
+        "image.h": "c",
+        "cycle.h": "c",
+        "elements.h": "c",
+        "headfile.h": "c",
+        "seekfree_mt9v03x.h": "c",
+        "zf_uart.h": "c",
+        "isr_config.h": "c"
+    }
+}

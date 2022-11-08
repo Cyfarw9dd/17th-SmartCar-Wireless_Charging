@@ -1,0 +1,9 @@
+eclipse.preferences.version=1
+encoding//CODE/cycle.h=UTF-8
+encoding//CODE/elements.h=UTF-8
+encoding//CODE/gyro.c=UTF-8
+encoding//CODE/gyro.h=UTF-8
+encoding//CODE/led.c=UTF-8
+encoding//CODE/led.h=UTF-8
+encoding//CODE/pid.h=UTF-8
+encoding//USER/isr.c=UTF-8
