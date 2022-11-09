@@ -26,16 +26,4 @@ void get_motor_speed(void);
 
 void Quick_Break(void);
 
-void Motor_Init(void);
-
-void Motor_Set(int16 speed);
-
-void steering_init(int16 angl);
-
-void steering_angl(int16 angl);
-
-void steering_test(void);
-
-void Buzzer_ctrl(unsigned time);
-
 #endif /* CODE_CONTROL_H_ */

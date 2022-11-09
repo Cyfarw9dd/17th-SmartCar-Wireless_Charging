@@ -69,14 +69,6 @@ extern changepoint Changepoint_Down_L, Changepoint_Down_R, Changepoint_Above_L, 
 extern changepoint Parking_L, Parking_R;
 extern changepoint RoundAbout_LeftDown, RoundAbout_LeftAbove, RoundAbout_RightDown, RoundAbout_RightAbove;
 
-/*
-    以下为电赛~B~题的变量命名
-*/
-extern unsigned char LengthwaysGarage_PointFlag;
-extern unsigned char CrosswiseGarage_PointFlag;
-extern unsigned char left_distance;
-extern unsigned char right_distance;
-extern unsigned char SearchingBoundaries_PointFlag;
 
 
 
@@ -105,11 +97,5 @@ void Judging_RoundAbout(unsigned char (*binary_array)[188]);
 void Judging_Slope(void);
 
 void Pokemon_Go(void);
-
-/*-------------------电赛~B~题----------------------*/
-
-void Searching_For_GarageBoundaries(unsigned char (*binary_array)[188]);
-
-void Judging_Garage(unsigned char (*binary_array)[188]);
 
 #endif /* CODE_ELEMENTS_H_ */
