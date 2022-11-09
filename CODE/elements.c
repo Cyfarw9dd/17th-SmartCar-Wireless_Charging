@@ -585,7 +585,6 @@ void Judging_P_Crossing_ver2(unsigned char (*binary_array)[188]){
 
 
 void Judging_StartLine(unsigned char (*binary_array)[188]){
-    //int[] black_nums_stack = new int[20];
     Findchangepoint_L(&Parking_L, 70, 40, &image_deal[0], CROSSING_ABOVE);
     Findchangepoint_R(&Parking_R, 70, 40, &image_deal[0], CROSSING_ABOVE);
     unsigned char times = 0;
