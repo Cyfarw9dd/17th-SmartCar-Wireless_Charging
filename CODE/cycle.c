@@ -95,21 +95,4 @@ void Turn_cycle_ForPCrossing(short theory_duty){ //1600
     motor_ctrl(LMotor_Duty, RMotor_Duty);
 }
 
-/*
-    定义一个全局数组，存放那些串口传输过来的特殊值，与k210设置的一一对应
-    本函数是对串口缓冲区中的数据重新排序
-    对特殊值作一一比较
-*/
-void Get_UartBuffer(void){
-    uart_query(UART_0, &truth);
-    data_array[num] = truth;
-    if(data_array[0] != 9){
-        num = 0;
-    }
-    else{
-        num++;
-    }
-    if(num == 4){
-        num = 0;
-    }
-}
+

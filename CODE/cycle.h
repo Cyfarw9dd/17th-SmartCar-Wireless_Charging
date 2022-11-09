@@ -32,7 +32,5 @@ void Turn_cycle_ver3(void);
 
 void Turn_cycle_ForPCrossing(short theory_duty);
 
-void Get_UartBuffer(void);
-
 #endif /* CODE_CYCLE_H_ */
 
