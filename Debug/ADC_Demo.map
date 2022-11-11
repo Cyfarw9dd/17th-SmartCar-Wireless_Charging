@@ -11549,7 +11549,7 @@ Note:
 | X (17820)                          |                                  |             |                                                         |              |
 | .bss.elements.Divergence_TopPoint_ | elements.o                       |             | Divergence_TopPoint_Y                                   | unreferenced |
 | Y (17821)                          |                                  |             |                                                         |              |
-| .bss.elements.Divergence_TopRightP | elements.o                       |             | Divergence_TopRightPoint_Y                              | unreferenced |
+| .bss.elements.Divergence_TopRightP | elements.o                       |             | Divergence_k2                              | unreferenced |
 | oint_Y (17830)                     |                                  |             |                                                         |              |
 | .data.elements.P_Crossing_PointFla | elements.o                       |             | P_Crossing_PointFlag_L                                  | unreferenced |
 | g_L (17836)                        |                                  |             |                                                         |              |

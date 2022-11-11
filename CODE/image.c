@@ -26,39 +26,37 @@
 #include "pid.h"
 #include "control.h"
 
-unsigned char centerline[120];                 //定义中线数组，中线数组的横坐标等于（左线横坐标+右线横坐标）/ 2
+unsigned char centerline[120];                  //定义中线数组，中线数组的横坐标等于（左线横坐标+右线横坐标）/ 2
 unsigned char leftline[120];                    //定义左边线数组
-unsigned char leftline_found_flag[120];
 unsigned char rightline[120];                   //定义右边线数组
-unsigned char rightline_found_flag[120];
-unsigned char road_width[120];
 unsigned char image_deal[MT9V03X_H][MT9V03X_W]; //声明一个二维数组，用于存放二值化后的图像，其中，下标MT9V03X_H，MT9V03X_W表示总钻风图像的高和宽
 unsigned char image_deal2[MT9V03X_H][MT9V03X_W];
-unsigned char Left_RoadWidth[120], Right_RoadWidth[120];
-short image_threshold = 0;
+unsigned char Left_RoadWidth[120];              //定义左半边赛道宽度，即中线到左边线的距离
+unsigned char Right_RoadWidth[120];             //定义右半边赛道宽度
+short image_threshold = 0;                      //定义图像处理阈值
 
 /*这两个变量用于计算中线的偏差程度，并将计算出的结果交给转向环计算*/
-int Prospect_Err = 0;                   //定义前瞻偏差
-int Bottom_Err = 0;                     //定义车身横向底端偏差
+
+int Prospect_Err = 0;                   //定义前瞻偏差，前瞻偏差的取值为实际中线上三个等距的点分别对理想中线做的差
+int Bottom_Err = 0;                     //定义车身横向偏差，即摄像头拍到图像的最底端一行所处的中线值对理想中线做的差
 int further, middle, near;              //图像中的远点，中点和近点
 
 /*
     摄像头运行的主体函数，大津法，扫线等都整合在里面运行
 */
 void Camera(void){
-    if(mt9v03x_finish_flag){
+    if(mt9v03x_finish_flag){                              //mt9v03x_finish_flag为图像处理结束的标志位，在逐飞库中有着详细定义
         image_threshold = GetOSTU(mt9v03x_image[0]);      //通过大津法来得到原始灰度图像的阈值
         lcd_binaryzation032_zoom(mt9v03x_image[0], image_deal[0], MT9V03X_W , MT9V03X_H, image_threshold); //将二值化后的图像存放到image_deal[120][188]里
-        // Get_IcmData();
+        Get_IcmData();                                    //获取陀螺仪数据
 
-        Searching_for_boundaries(&image_deal[0]);
-        Deal_Road_Characteristics(&image_deal[0]);
-        regression(CenterLine, 119, 88);
-        // Turn_cycle_ver2(1800);
+        Searching_for_boundaries(&image_deal[0]);         //寻找赛道边界 
+        Deal_Road_Characteristics(&image_deal[0]);        //处理赛道特征，如计算左右半边赛道宽度等       
+        Turn_cycle_ver2(1800);                            //转向环，传入1800的pwm
         lcd_displayimage032(mt9v03x_image[0], 188, 120);
-        Pokemon_Go();
-        Hightlight_Lines(&image_deal[0]);
-        mt9v03x_finish_flag = 0;
+        Pokemon_Go();                                     //元素判断
+        Hightlight_Lines(&image_deal[0]);                 //高亮左右边界以及中线
+        mt9v03x_finish_flag = 0;                          //标志位归0，一定要归0！不归0的话图像只处理起始帧
     }
 }
 
@@ -218,7 +216,7 @@ void lcd_binaryzation032_zoom(unsigned char *p, unsigned char *q, unsigned short
 }
 
 /*
-    四邻域滤波，乱写的暂时还用不着，可以不用管
+    四邻域滤波
 */
 void Four_neighbourhood_Filter(unsigned char (*binary_array)[188]){
     short row; //行
@@ -242,10 +240,6 @@ void Four_neighbourhood_Filter(unsigned char (*binary_array)[188]){
     }
 }
 
-/*
-    这个也可以先不用管
-    大概的作用是计算某个点的曲率
-*/
 float one_curvature(int x1, int y1) // one_curvature(centerline[30], 30)
 {
     float K;

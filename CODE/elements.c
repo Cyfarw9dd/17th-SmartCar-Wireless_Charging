@@ -35,20 +35,13 @@ unsigned char Present_RoundAbout_PointFlagL = 1;    /*********************/
 unsigned char Present_RoundAbout_PointFlagR = 1;
 
 /*-------三岔特殊点坐标数据---------*/
-float Divergence_startrow;
+float Divergence_startrow;    
 float Divergence_startcol;
-float Divergence_button_X;
+float Divergence_button_X;    //三岔入口低端的尖点坐标
 float Divergence_button_Y;
-unsigned char Divergence_TopPoint_X;
-unsigned char Divergence_TopPoint_Y;
-short sum_lost_line;
-float Divergence_k;
-float Divergence_b;
-double Divergence_k1;
-double Divergence_k2;
-unsigned char Divergnce_TopLeftPoint_X, Divergnce_TopLeftPoint_Y;
-unsigned char Divergence_TopRightPoint_X, Divergence_TopRightPoint_Y;
+float Divergence_k;           //补线用的斜率
 
+/*------各类标志位-------*/
 unsigned char StartLine_PointFlag = 0;      // 斑马线标志位
 unsigned char RoundAbout_PointFlag_L = 0;   // 左环岛标志位
 unsigned char RoundAbout_PointFlag_R = 0;   // 右环岛标志位
@@ -62,23 +55,6 @@ unsigned char ChargingParking_PointFlag = 0;// 充电停车标志位
 unsigned char CurrentCharging_PointFlag = 0;// 充电标志位
 unsigned char WireNum = 0;                  // 线圈计数
 unsigned char Outing_Flag = 1;              // 不知道什么玩意
-
-
-
-
-
-
-/*
-    以下为电赛~B~题的各种变量及标志位
-*/
-
-unsigned char LengthwaysGarage_PointFlag = 0;       // 纵向车库识别标志位，1为识别到第一个车库，2为识别到第二个车库，以此类推
-unsigned char CrosswiseGarage_PointFlag = 0;        // 横向车库识别标志位，与上通
-unsigned char left_distance = 0;                    // 从中线向左边界累加的距离
-unsigned char right_distance = 0;                   // 从中线向右边界累加的距离
-unsigned char SearchingBoundaries_PointFlag = 0;    // 寻找角点函数中的标志位，如果标志位为3，则判断为找到车库
-
-
 
 
 /*
@@ -106,6 +82,13 @@ int minimum(int var1, int var2){
     函数参数：一个changepoint类型的结构体，拐点寻找的起始行，结束行，二值化后的原始数组，不同拐点的模式参数
     为了方便寻找不同类型的拐点，预先设置了不同的模式（mode），一一对应不同类型的拐点。大体上，将拐点分为上下拐点两类，在下拐点又细分
     角拐点和平拐点，比如三岔入口底部左右两侧的角拐点以及十字路口出入口底部左右两侧的平拐点。
+
+    @parameter
+    prt -> 结构体变量地址或结构体指针
+    Start -> 拐点寻找的起始行
+    End -> 拐点寻找的结束行
+    (*binary_array)[188] -> 二值化后的数组
+    mode -> 拐点寻找的模式，不同的拐点给定了不同的模式
 */
 void Findchangepoint_L(changepoint *prt, unsigned char Start, unsigned char End, unsigned char (*binary_array)[188], unsigned char mode){
     // 角拐点
@@ -227,6 +210,13 @@ void Findchangepoint_L(changepoint *prt, unsigned char Start, unsigned char End,
     函数参数：一个changepoint类型的结构体，拐点寻找的起始行，结束行，二值化后的原始数组，不同拐点的模式参数
     为了方便寻找不同类型的拐点，预先设置了不同的模式（mode），一一对应不同类型的拐点。大体上，将拐点分为上下拐点两类，在下拐点又细分
     角拐点和平拐点，比如三岔入口底部左右两侧的角拐点以及十字路口出入口底部左右两侧的平拐点。
+
+    @parameter
+    prt -> 结构体变量地址或结构体指针
+    Start -> 拐点寻找的起始行
+    End -> 拐点寻找的结束行
+    (*binary_array)[188] -> 二值化后的数组
+    mode -> 拐点寻找的模式，不同的拐点给定了不同的模式
 */
 void Findchangepoint_R(changepoint *prt, unsigned char Start, unsigned char End, unsigned char (*binary_array)[188], unsigned char mode){
     // 角拐点
@@ -346,24 +336,24 @@ void Findchangepoint_R(changepoint *prt, unsigned char Start, unsigned char End,
 }
 
 
-
+// 判断三岔
 void Judging_Divergence(unsigned char (*binary_array)[188]){
-    if(!P_Crossing_PointFlag_L && !P_Crossing_PointFlag_R){
+    if(!P_Crossing_PointFlag_L && !P_Crossing_PointFlag_R){     //三岔前置进入条件
         // Divergence_point_flag = 0;     
-        unsigned char distance = 0;
-        Divergence_button_X = 0;
+        unsigned char distance = 0;         
+        Divergence_button_X = 0;            //初始化特殊点坐标数据
         Divergence_button_Y = 0;
-        unsigned char leftline_lost_sum = Leftline_Lost_Sum(BottomRow, BottomRow - 60);
+        unsigned char leftline_lost_sum = Leftline_Lost_Sum(BottomRow, BottomRow - 60);         //计算左右两边的丢线数目
         unsigned char rightline_lost_sum = Rightline_Lost_Sum(BottomRow, BottomRow - 60);
-        Findchangepoint_L(&TripChangepointL, 119, 70, &image_deal[0], TRIP);
+        Findchangepoint_L(&TripChangepointL, 119, 70, &image_deal[0], TRIP);        //寻找三岔起始下端左右两边的拐点
         Findchangepoint_R(&TripChangepointR, 119, 70, &image_deal[0], TRIP);
         if((TripChangepointL.changepoint_flag && TripChangepointR.changepoint_flag && absolute(TripChangepointL.changepoint_row - TripChangepointR.changepoint_row) <= 10) || (TripChangepointL.changepoint_flag && TripChangepointR.changepoint_row == 119)){
-            Divergence_startrow = (TripChangepointL.changepoint_row + TripChangepointR.changepoint_row) / 2;
+            Divergence_startrow = (TripChangepointL.changepoint_row + TripChangepointR.changepoint_row) / 2;    //计算左右拐点之间的中点坐标
             Divergence_startcol = (TripChangepointL.changepoint_col + TripChangepointR.changepoint_col) / 2;
             for(unsigned char i = (int)Divergence_startrow; i > 1; i--){
                 if((image_deal[i][(int)Divergence_startcol] == 0) && (image_deal[i + 1][(int)Divergence_startcol] == 255) && image_deal[i + 2][(int)Divergence_startcol] == 255){
-                    Divergence_button_X = i;
-                    Divergence_button_Y = Divergence_startcol;
+                    Divergence_button_X = i;               
+                    Divergence_button_Y = Divergence_startcol;          //获取三岔底部尖点的坐标
                     distance = Divergence_startrow - Divergence_button_X;
                     break;
                 }
@@ -373,13 +363,13 @@ void Judging_Divergence(unsigned char (*binary_array)[188]){
             Divergence_k = (TripChangepointR.changepoint_col - Divergence_button_Y) / (TripChangepointR.changepoint_row - Divergence_button_X);
             Divergence_point_flag = 1;
             for(unsigned char i = (int)TripChangepointR.changepoint_row; i > Divergence_button_X; i--){
-                rightline[i] = (int)(Divergence_k * (i - Divergence_button_X) + Divergence_button_Y);
+                rightline[i] = (int)(Divergence_k * (i - Divergence_button_X) + Divergence_button_Y);       //补线，直接对右边线数组进行更改
             }
         }
     }
 }
 
-
+// 坐边线丢线数目
 unsigned char Leftline_Lost_Sum(unsigned char Start_Row, unsigned char End_row){
     unsigned char leftline_lost_sum = 0;
     for(int i = Start_Row; i > End_row; i--){
@@ -390,7 +380,7 @@ unsigned char Leftline_Lost_Sum(unsigned char Start_Row, unsigned char End_row){
     return leftline_lost_sum;
 }
 
-
+// 右边线丢线数目
 unsigned char Rightline_Lost_Sum(unsigned char Start_Row, unsigned char End_row){
     unsigned char rightline_lost_sum = 0;
     for(int i = Start_Row; i > End_row; i--){
@@ -402,27 +392,34 @@ unsigned char Rightline_Lost_Sum(unsigned char Start_Row, unsigned char End_row)
 }
 
 
+// 判断十字回环
 
+/*
+    我这个方法并不能做到非常完美的识别，大概十次只能识别5次左右，但大体上应该还是能给到一些参考
+    整体的逻辑结构采用了并级的if结构来给标志位赋值，和串级相比主要是为了识别的稳定性，串级嵌套有时候会跳过标志位不识别
+    并级可以做到就算没从标志位1开始判断，也可以到标志位2的时候进行识别判断
+*/
 void Judging_P_Crossing_ver2(unsigned char (*binary_array)[188]){
-    unsigned char leftline_lost_sum = Leftline_Lost_Sum(119, 1);
+    unsigned char leftline_lost_sum = Leftline_Lost_Sum(119, 1);        //判断丢线数目
     unsigned char rightline_lost_sum = Rightline_Lost_Sum(119, 1);
-    Findchangepoint_L(&Changepoint_Down_L, 119, 75, &image_deal[0], CROSSING_DOWN);
+    Findchangepoint_L(&Changepoint_Down_L, 119, 75, &image_deal[0], CROSSING_DOWN);     //寻找下左拐点，下右拐点，上左拐点，下右拐点
     Findchangepoint_R(&Changepoint_Down_R, 119, 75, &image_deal[0], CROSSING_DOWN);
     Findchangepoint_L(&Changepoint_Above_L, 65, 35, &image_deal[0], CROSSING_ABOVE);
-    Findchangepoint_R(&Changepoint_Above_R, 65, 35, &image_deal[0], CROSSING_ABOVE); // 65 20
+    Findchangepoint_R(&Changepoint_Above_R, 65, 35, &image_deal[0], CROSSING_ABOVE); 
     
+    //判断左十字回环标志位1
     if(Changepoint_Down_L.changepoint_flag && Changepoint_Above_L.changepoint_flag && /*!Changepoint_Down_R.changepoint_flag && !Changepoint_Above_R.changepoint_flag
     && */rightline_lost_sum <= 20 && Changepoint_Down_L.changepoint_col < 90 && Changepoint_Above_L.changepoint_col < 90 && P_Crossing_PointFlag_L <= 1)
     {
         P_Crossing_PointFlag_L = 1;
     }
-    
+    //判断左十字回环标志位2
     if(!Changepoint_Down_L.changepoint_flag && Changepoint_Above_L.changepoint_flag && /*!Changepoint_Down_R.changepoint_flag && !Changepoint_Above_R.changepoint_flag
     && */rightline_lost_sum <= 10 && Changepoint_Above_L.changepoint_col < 93 && Changepoint_Above_L.changepoint_row > 40 && (P_Crossing_PointFlag_L == 1 || P_Crossing_PointFlag_L == 2))
     {
         P_Crossing_PointFlag_L = 2;
     }
-    
+    //判断左十字回环标志位3
     if(Changepoint_Down_R.changepoint_flag && Changepoint_Down_R.changepoint_row >= 75 &&  Changepoint_Down_R.changepoint_col > 110 && P_Crossing_PointFlag_L >= 1 && P_Crossing_PointFlag_L <= 3)
     {
         P_Crossing_PointFlag_L = 3;
@@ -441,8 +438,7 @@ void Judging_P_Crossing_ver2(unsigned char (*binary_array)[188]){
             leftline[i] = (int)(TempK * (i - TempPoint_row) + TempPoint_col);
         }
     }
-
-    
+    //判断左十字回环标志位4
     if(Changepoint_Down_L.changepoint_flag && Changepoint_Down_R.changepoint_flag && Changepoint_Down_L.changepoint_row >= 100 && Changepoint_Down_R.changepoint_row >=100
     && P_Crossing_PointFlag_L >= 1 && P_Crossing_PointFlag_L <= 4){
         P_Crossing_PointFlag_L = 4;
@@ -497,19 +493,19 @@ void Judging_P_Crossing_ver2(unsigned char (*binary_array)[188]){
     */
 
 
-    
+    //判断右十字回环标志位1
     if(Changepoint_Down_R.changepoint_flag && Changepoint_Above_R.changepoint_flag && /*!Changepoint_Down_L.changepoint_flag && !Changepoint_Above_L.changepoint_flag
     && */leftline_lost_sum <= 10 && Changepoint_Down_R.changepoint_col > 93 && Changepoint_Above_R.changepoint_col > 93 && P_Crossing_PointFlag_R <= 1)
     {
         P_Crossing_PointFlag_R = 1;
     }
-    
+    //判断右十字回环标志位2
     if(!Changepoint_Down_R.changepoint_flag && Changepoint_Above_R.changepoint_flag && /*!Changepoint_Down_L.changepoint_flag && !Changepoint_Above_L.changepoint_flag
     && */leftline_lost_sum <= 10 && Changepoint_Above_R.changepoint_col > 93 && Changepoint_Above_R.changepoint_row > 40 && P_Crossing_PointFlag_R >= 1 && P_Crossing_PointFlag_R <=2)
     {
         P_Crossing_PointFlag_R = 2;
     }
-    
+    //判断右十字回环标志位3
     if(Changepoint_Down_L.changepoint_flag && Changepoint_Down_L.changepoint_row >= 74 && Changepoint_Down_L.changepoint_row <= 107 && Changepoint_Down_L.changepoint_col <= 47
     && P_Crossing_PointFlag_R >= 1 && P_Crossing_PointFlag_R <= 3 && Changepoint_Down_R.changepoint_flag)
     {
@@ -529,7 +525,7 @@ void Judging_P_Crossing_ver2(unsigned char (*binary_array)[188]){
             rightline[i] = (int)(TempK * (i - TempPoint_row) + TempPoint_col);
         }
     }
-    
+    //判断右十字回环标志位4
     if(Changepoint_Down_L.changepoint_flag && Changepoint_Down_R.changepoint_flag && Changepoint_Down_L.changepoint_row >= 100 && Changepoint_Down_R.changepoint_row >=100
     && P_Crossing_PointFlag_R >= 1 && P_Crossing_PointFlag_R <= 4){
         P_Crossing_PointFlag_R = 4;
@@ -583,7 +579,7 @@ void Judging_P_Crossing_ver2(unsigned char (*binary_array)[188]){
     */
 }
 
-
+// 判断起跑线
 void Judging_StartLine(unsigned char (*binary_array)[188]){
     Findchangepoint_L(&Parking_L, 70, 40, &image_deal[0], CROSSING_ABOVE);
     Findchangepoint_R(&Parking_R, 70, 40, &image_deal[0], CROSSING_ABOVE);
@@ -648,7 +644,7 @@ void Judging_StartLine(unsigned char (*binary_array)[188]){
 
 }
 
-
+// 判断环岛
 void Judging_RoundAbout(unsigned char (*binary_array)[188]){
     // Judging right roundabout point flag 1st
     for(unsigned char i = BottomRow - 10; i > 60; i--){
@@ -800,30 +796,13 @@ void Judging_Slope(void){
     }
 }
 
-void RoundingCounter_Supporting(void){
-    if(Present_RoundAbout_PointFlagR == RoundAbout_PointFlag_R){
-        Rounding_RCounter++;
-    }
-    else{
-        Rounding_RCounter = 0;
-        if(Present_RoundAbout_PointFlagR + 1 == RoundAbout_PointFlag_R){
-            Present_RoundAbout_PointFlagR = RoundAbout_PointFlag_R;
-        }
-    }
-
-}
-
-// void Go_forwardL(void){
-//     Findchangepoint_L(&Changepoint_Down_L, 119, 75, &image_deal[0], CROSSING_DOWN);
-//     Findchangepoint_R(&Changepoint_Down_R, 119, 75, &image_deal[0], CROSSING_DOWN);
-//     if(Changepoint_Down_L.changepoint_flag && Changepoint_Down_R.cahnge)
-// }
-
-// void Go_forwardR(void){
-
-// }
-
-
+/*
+    元素处理主函数，整合了不同元素的判断
+    由于在赛前的时候还没有完全解决不同元素之间的冲突的问题，在这里就把这些元素的调用给注释掉了
+    WireNum那块是无线充电用的，可以忽略
+    入元素前设置了减速措施，但效果并不是很好
+    目前比较稳定的主要是三岔以及十字回环，可以参考参考
+*/
 void Pokemon_Go(void){
     short Slow_Down = 1500;
     // if(WireNum == 3){
